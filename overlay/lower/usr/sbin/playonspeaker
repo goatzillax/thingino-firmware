@@ -1,0 +1,35 @@
+#!/bin/sh
+
+plugin="speaker"
+
+. /sbin/common-plugins
+
+show_help() {
+	echo "Usage: $0 [-u url] [-f file] [-v] [-h]
+  -u url      Audio URL.
+  -f file     Audio file.
+  -v          Verbose output.
+  -h          Show this help.
+"
+	quit_clean 0
+}
+
+# override config values with command line arguments
+while getopts f:u:vh flag; do
+	case "$flag" in
+		f) speaker_file=$OPTARG ;;
+		v) verbose="true" ;;
+		h | *) show_help ;;
+	esac
+done
+
+[ "false" = "$speaker_enabled" ] && die "Playing on speaker is disabled in config $config_file"
+# validate mandatory values
+[ -z "$speaker_file" ] && die "Audio file is not set"
+[ -f "$speaker_file" ] || die "Audio file $speaker_file not found"
+
+log_and_run "iac -f $speaker_file"
+
+[ "true" = "$verbose" ] && cat "$LOG_FILE"
+
+quit_clean 0
